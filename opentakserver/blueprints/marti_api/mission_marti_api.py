@@ -85,11 +85,12 @@ def verify_itak_certificate(
     cert = verify_client_cert()
     username = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
 
-    # Check that the user exists
-    user = db.session.execute(db.session.query(User).filter_by(username=username)).first()
+    # Check that the user exists. The CN may differ in case from the stored username,
+    # and MissionRole.username below is the stored one
+    user = app.security.datastore.find_user(username=username)
     if not user:
         return jsonify({"success": False, "error": f"User {username} not found"}), 401
-    user = user[0]
+    username = user.username
 
     # Check that the user owns this EUD
     eud_uid = request.args.get("creatorUid")

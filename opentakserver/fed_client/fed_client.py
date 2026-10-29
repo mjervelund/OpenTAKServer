@@ -16,10 +16,10 @@ import grpc
 import sqlalchemy
 import yaml
 from flask import Flask, jsonify
-from flask_security import SQLAlchemyUserDatastore
 from flask_security.models import fsqla
 
 import opentakserver
+from opentakserver.UserDatastore import UserDatastore
 from opentakserver.rabbitmq_client import RabbitMQClient
 
 from opentakserver.models.CoT import CoT
@@ -361,7 +361,7 @@ def create_app():
     from opentakserver.models.role import Role
     from opentakserver.models.user import User
 
-    user_datastore = SQLAlchemyUserDatastore(db, User, Role, WebAuthn)
+    user_datastore = UserDatastore(db, User, Role, WebAuthn)
 
     return app
 

@@ -17,7 +17,6 @@ from sqlalchemy import delete
 
 from opentakserver.extensions import db, ldap_manager, logger
 from opentakserver.models.Token import Token
-from opentakserver.models.user import User
 
 token_api_blueprint = Blueprint("token_api_blueprint", __name__)
 
@@ -96,14 +95,18 @@ def new_atak_qr_string():
     """
     try:
         username = request.json.get("username") or current_user.username
-        if username != current_user.username and not current_user.has_role("administrator"):
+        if username.lower() != current_user.username.lower() and not current_user.has_role(
+            "administrator"
+        ):
             return jsonify({"success": False, "error": "Cannot generate QR for another user"}), 401
 
         else:
-            if username != current_user.username and current_user.has_role("administrator"):
-                user = db.session.query(User).filter_by(username=username).first()
-                if not user:
-                    return jsonify({"success": False, "error": f"No such user: {username}"}), 404
+            # find_user() ignores case (see UserDatastore). Token.username is a foreign key to
+            # user.username, so it has to be the stored username, not what was typed
+            user = app.security.datastore.find_user(username=username)
+            if not user:
+                return jsonify({"success": False, "error": f"No such user: {username}"}), 404
+            username = user.username
 
             token = db.session.execute(db.session.query(Token).filter_by(username=username)).first()
             if token:
@@ -172,7 +175,8 @@ def get_atak_qr_strings():
     query = db.session.query(Token)
 
     if current_user.has_role("administrator") and request.args.get("username"):
-        username = request.args.get("username")
+        user = app.security.datastore.find_user(username=request.args.get("username"))
+        username = user.username if user else request.args.get("username")
     else:
         username = current_user.username
 
@@ -213,7 +217,8 @@ def delete_token():
     """
     try:
         if current_user.has_role("administrator") and request.args.get("username"):
-            username = request.args.get("username")
+            user = app.security.datastore.find_user(username=request.args.get("username"))
+            username = user.username if user else request.args.get("username")
         else:
             username = current_user.username
 

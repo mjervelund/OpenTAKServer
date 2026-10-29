@@ -11,9 +11,10 @@ import yaml
 from apscheduler.jobstores import sqlalchemy
 from flask import Flask, jsonify
 from flask_babel import gettext
-from flask_security import SQLAlchemyUserDatastore, Security
+from flask_security import Security
 from flask_security.models import fsqla
 
+from opentakserver.UserDatastore import UserDatastore
 from opentakserver.EmailValidator import EmailValidator
 from opentakserver.PasswordValidator import PasswordValidator
 from opentakserver.defaultconfig import DefaultConfig
@@ -120,7 +121,7 @@ def create_app():
     from opentakserver.models.user import User
 
     flask_wtf.CSRFProtect(app)
-    user_datastore = SQLAlchemyUserDatastore(db, User, Role)
+    user_datastore = UserDatastore(db, User, Role)
     app.security = Security(
         app, user_datastore, mail_util_cls=EmailValidator, password_util_cls=PasswordValidator
     )

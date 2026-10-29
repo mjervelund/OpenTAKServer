@@ -286,13 +286,6 @@ def certificate():
     if request.method == "POST" and "username" in request.json.keys():
         try:
             username = bleach.clean(request.json.get("username"))
-            truststore_filename = os.path.join(
-                app.config.get("OTS_CA_FOLDER"), "certs", "opentakserver", "truststore-root.p12"
-            )
-            user_filename = os.path.join(
-                app.config.get("OTS_CA_FOLDER"), "certs", username, "{}.p12".format(username)
-            )
-
             user = app.security.datastore.find_user(username=username)
 
             if not user:
@@ -305,6 +298,17 @@ def certificate():
                     ),
                     400,
                 )
+
+            # find_user() ignores case (see UserDatastore), so "Bob" finds "bob". Use the stored
+            # username from here on, it's the cert's CN and a foreign key to user.username
+            username = user.username
+
+            truststore_filename = os.path.join(
+                app.config.get("OTS_CA_FOLDER"), "certs", "opentakserver", "truststore-root.p12"
+            )
+            user_filename = os.path.join(
+                app.config.get("OTS_CA_FOLDER"), "certs", username, "{}.p12".format(username)
+            )
 
             ca = CertificateAuthority(logger, app)
             filenames = ca.issue_certificate(username, False)

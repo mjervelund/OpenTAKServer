@@ -15,7 +15,6 @@ from werkzeug.datastructures import ImmutableMultiDict
 from opentakserver.blueprints.marti_api.marti_api import verify_client_cert
 from opentakserver.extensions import db, logger
 from opentakserver.forms.MediaMTXPathConfig import MediaMTXPathConfig
-from opentakserver.models.user import User
 from opentakserver.models.VideoStream import VideoStream
 
 video_marti_api = Blueprint("video_marti_api", __name__)
@@ -158,6 +157,12 @@ def add_video():
     cert = verify_client_cert()
     username = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
 
+    # The CN is whatever was typed when enrolling, so it may differ in case from the
+    # stored username, which VideoStream.username is a foreign key to
+    user = app.security.datastore.find_user(username=username)
+    if user:
+        username = user.username
+
     videos = request.json
 
     for video in videos["videoConnections"]:
@@ -192,7 +197,7 @@ def get_video(uid):
     video = db.session.query(VideoStream).filter_by(uid=uid).scalar()
     if not video:
         return jsonify({"success": False, "error": gettext("Video not found")}), 404
-    user = db.session.execute(db.session.query(User).filter_by(username=username)).first()
+    user = app.security.datastore.find_user(username=username)
     if not user:
         return (
             jsonify(
@@ -203,7 +208,6 @@ def get_video(uid):
             ),
             401,
         )
-    user = user[0]
     return video.to_marti_json(user), 200
 
 

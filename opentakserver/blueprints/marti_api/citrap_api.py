@@ -165,6 +165,10 @@ def add_citrap():
         return jsonify({"success": False, "error": gettext("Failed to verify certificate")}), 400
 
     username = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
+    # The CN may differ in case from the stored username, which MissionRoles are looked up by
+    user = app.security.datastore.find_user(username=username)
+    if user:
+        username = user.username
 
     try:
         mission = Mission()
