@@ -1,6 +1,7 @@
 from gevent import monkey
 monkey.patch_all()
 
+from opentakserver.UserDatastore import UserDatastore
 from opentakserver.models.Mission import Mission
 from opentakserver.models.MissionRole import MissionRole
 from opentakserver.models.FederationConnection import FederationConnection
@@ -28,7 +29,6 @@ from flask_cors import CORS
 from flask_migrate import Migrate, upgrade
 from flask_security import (
     Security,
-    SQLAlchemyUserDatastore,
     hash_password,
     uia_email_mapper,
     uia_username_mapper,
@@ -218,7 +218,7 @@ def init_extensions(app):
         apscheduler.init_app(app)
         apscheduler.start(paused=False)
 
-    user_datastore = SQLAlchemyUserDatastore(db, User, Role, WebAuthn)
+    user_datastore = UserDatastore(db, User, Role, WebAuthn)
     app.security = Security(
         app,
         user_datastore,
@@ -359,7 +359,7 @@ def create_app(cli=True):
         from opentakserver.models.role import Role
         from opentakserver.models.user import User
 
-        user_datastore = SQLAlchemyUserDatastore(db, User, Role, WebAuthn)
+        user_datastore = UserDatastore(db, User, Role, WebAuthn)
         app.security = Security(
             app,
             user_datastore,

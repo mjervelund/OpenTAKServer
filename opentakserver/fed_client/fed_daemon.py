@@ -18,12 +18,12 @@ import sqlalchemy
 import yaml
 from flask import Flask
 from flask_login import current_user
-from flask_security import SQLAlchemyUserDatastore
 from flask_security.models import fsqla
 from sqlalchemy import select, update, delete, insert
 from collections.abc import AsyncIterable
 
 import opentakserver
+from opentakserver.UserDatastore import UserDatastore
 from opentakserver.fed_client.RabbitMQAsyncClient import RabbitMQAsyncClient
 from opentakserver.fed_client.data_converter import federated_event2cot, cot2federated_event
 from opentakserver.models.Group import Group
@@ -685,7 +685,7 @@ class FedDaemon(RabbitMQAsyncClient):
         from opentakserver.models.role import Role
         from opentakserver.models.user import User
 
-        user_datastore = SQLAlchemyUserDatastore(db, User, Role, WebAuthn)
+        user_datastore = UserDatastore(db, User, Role, WebAuthn)
 
 
 def args():

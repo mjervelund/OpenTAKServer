@@ -24,11 +24,12 @@ import yaml
 from bs4 import BeautifulSoup
 from flask import Flask
 from flask_ldap3_login import AuthenticationResponseStatus
-from flask_security import SQLAlchemyUserDatastore, Security, verify_password
+from flask_security import Security, verify_password
 from flask_security.models import fsqla
 from pika.channel import Channel
 from sqlalchemy import insert, update, select
 
+from opentakserver.UserDatastore import UserDatastore
 from opentakserver.EmailValidator import EmailValidator
 from opentakserver.PasswordValidator import PasswordValidator
 from opentakserver.defaultconfig import DefaultConfig
@@ -279,7 +280,7 @@ class EudHandler(socketserver.BaseRequestHandler):
         from opentakserver.models.user import User
 
         flask_wtf.CSRFProtect(app)
-        user_datastore = SQLAlchemyUserDatastore(db, User, Role)
+        user_datastore = UserDatastore(db, User, Role)
         app.security = Security(
             app, user_datastore, mail_util_cls=EmailValidator, password_util_cls=PasswordValidator
         )

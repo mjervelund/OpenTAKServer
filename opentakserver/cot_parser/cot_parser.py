@@ -21,10 +21,10 @@ import unishox2
 import yaml
 from bs4 import BeautifulSoup
 from flask import Flask, jsonify
-from flask_security import SQLAlchemyUserDatastore
 from flask_security.models import fsqla
 from flask_socketio import SocketIO
 from meshtastic import BROADCAST_NUM, mesh_pb2, mqtt_pb2, portnums_pb2
+from opentakserver.UserDatastore import UserDatastore
 from opentakserver.models.GroupUser import GroupUser
 from pika.channel import Channel
 from sqlalchemy import exc, insert, select, update
@@ -1356,7 +1356,7 @@ def create_app():
     from opentakserver.models.role import Role
     from opentakserver.models.user import User
 
-    user_datastore = SQLAlchemyUserDatastore(db, User, Role, WebAuthn)
+    user_datastore = UserDatastore(db, User, Role, WebAuthn)
 
     return app
 
